@@ -15,10 +15,11 @@ DESCRIPTION
 ARGUMENTS
 
 	-h, --help		show this help message and exit
-	LANGUAGE			specify the script's language, to be placed as the shebang
+	LANGUAGE		specify the script's language, to be placed as the shebang
 								current options: python, python3, bash
 
 	SCRIPT_NAME		the name of the script to be created
+	                could be a path - e.g. /path/to/
 
 AUTHOR
 
@@ -64,7 +65,15 @@ class BaseSkeletonBuilder(object):
     year = datetime.now().year
 
     def __init__(self, name, store_in):
-        self.name = name
+        if name.endswith(self.extension):
+            # command line parameter for script's name is the filename
+            #   e.g. script.sh, script.py, etc
+            # remove the extension
+            character_count_to_remove = len(self.extension)
+            self.name = name[:-character_count_to_remove]
+        else:
+            self.name = name
+
         logger.debug('Script name: {}'.format(name))
         self.store_in = store_in
         logger.debug('Directory: {}'.format(store_in))
@@ -78,22 +87,15 @@ class BaseSkeletonBuilder(object):
         return complete_path
 
     def get_script_filename(self):
-        if self.name.endswith(self.extension):
-            filename = self.name
-        else:
-            filename = '{name}.{ext}'.format(name=self.name,
-                                             ext=self.extension)
+        filename = '{name}{ext}'.format(name=self.name,
+                                        ext=self.extension)
         logger.debug('Script filename w/ extension: {}'.format(filename))
         return filename
 
     def populate_template(self):
         with open(self.get_template_path()) as f:
             template_content = f.read()
-
         content = template_content.format(self)
-        logger.debug('-' * 20 + ' Populated Template ' + '-' * 20)
-        logger.debug(content)
-        logger.debug('-' * 60)
         return content
 
     def get_template_path(self):
@@ -105,7 +107,7 @@ class BaseSkeletonBuilder(object):
 
 # TODO: implement deprecation warning using the warnings class
 class PythonSkeletonBuilder(BaseSkeletonBuilder):
-    extension = 'py'
+    extension = '.py'
 
 
 class Python2SkeletonBuilder(PythonSkeletonBuilder):
@@ -118,6 +120,7 @@ class Python3SkeletonBuilder(PythonSkeletonBuilder):
 
 # TODO: implement bash skeleton template
 class BashSkeletonBuilder(BaseSkeletonBuilder):
+    extension = '.sh'
     template_filename = 'bash.template'
 
 
