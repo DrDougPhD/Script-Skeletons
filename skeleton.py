@@ -44,8 +44,25 @@ import logging
 
 logger = logging.getLogger(__appname__)
 
+# TODO: implement cross-platform functionality. Currently only tested in Linux.
+# TODO: obtain user's email?
+# TODO: config file for specifying user's name and email and other stuff
+import pwd
+def get_author():
+    """Get the full name and email address of the current user."""
+    current_user_id = os.getuid()
+    password_db_entry = pwd.getpwuid(current_user_id)
+    user_gecos = password_db_entry.pw_gecos
+    fullname = user_gecos.split(',')[0]
+    return fullname
+
 
 class BaseSkeletonBuilder(object):
+    templates_stored_in = 'templates'
+    author = get_author()
+    license = 'GNU GPLv3'
+    year = datetime.now().year
+
     def __init__(self, name, store_in):
         self.name = name
         logger.debug('Script name: {}'.format(name))
@@ -70,11 +87,20 @@ class BaseSkeletonBuilder(object):
         return filename
 
     def populate_template(self):
-        content = ''
-        logger.debug('-'*20 + ' Populated Template ' + '-'*20)
+        with open(self.get_template_path()) as f:
+            template_content = f.read()
+
+        content = template_content.format(self)
+        logger.debug('-' * 20 + ' Populated Template ' + '-' * 20)
         logger.debug(content)
-        logger.debug('-'*60)
+        logger.debug('-' * 60)
         return content
+
+    def get_template_path(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        template_path = os.path.join(current_dir, self.templates_stored_in,
+                                     self.template_filename)
+        return template_path
 
 
 # TODO: implement deprecation warning using the warnings class
@@ -83,23 +109,27 @@ class PythonSkeletonBuilder(BaseSkeletonBuilder):
 
 
 class Python2SkeletonBuilder(PythonSkeletonBuilder):
-    pass
+    template_filename = 'python2.template'
 
 
 class Python3SkeletonBuilder(PythonSkeletonBuilder):
-    pass
+    template_filename = 'python3.template'
 
 
+# TODO: implement bash skeleton template
 class BashSkeletonBuilder(BaseSkeletonBuilder):
-    pass
+    template_filename = 'bash.template'
 
 
 builders = {
-    'python': Python3SkeletonBuilder,
     'python3': Python3SkeletonBuilder,
     'python2': Python2SkeletonBuilder,
     'bash': BashSkeletonBuilder,
+
+    # defaults
+    'python': Python3SkeletonBuilder,
 }
+
 
 def script_factory(name, language, store_in=None):
     builder_class = builders[language]
