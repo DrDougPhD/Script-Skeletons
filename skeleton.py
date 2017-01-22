@@ -49,15 +49,44 @@ class BaseSkeletonBuilder(object):
     def __init__(self, name, store_in):
         self.name = name
         logger.debug('Script name: {}'.format(name))
+        self.store_in = store_in
         logger.debug('Directory: {}'.format(store_in))
+
+    def generate_script(self):
+        filename = self.get_script_filename()
+        complete_path = os.path.join(self.store_in, filename)
+        with open(complete_path, 'w') as script:
+            script_content = self.populate_template()
+            script.write(script_content)
+        return complete_path
+
+    def get_script_filename(self):
+        if self.name.endswith(self.extension):
+            filename = self.name
+        else:
+            filename = '{name}.{ext}'.format(name=self.name,
+                                             ext=self.extension)
+        logger.debug('Script filename w/ extension: {}'.format(filename))
+        return filename
+
+    def populate_template(self):
+        content = ''
+        logger.debug('-'*20 + ' Populated Template ' + '-'*20)
+        logger.debug(content)
+        logger.debug('-'*60)
+        return content
 
 
 # TODO: implement deprecation warning using the warnings class
-class Python2SkeletonBuilder(BaseSkeletonBuilder):
+class PythonSkeletonBuilder(BaseSkeletonBuilder):
+    extension = 'py'
+
+
+class Python2SkeletonBuilder(PythonSkeletonBuilder):
     pass
 
 
-class Python3SkeletonBuilder(BaseSkeletonBuilder):
+class Python3SkeletonBuilder(PythonSkeletonBuilder):
     pass
 
 
@@ -75,7 +104,7 @@ builders = {
 def script_factory(name, language, store_in=None):
     builder_class = builders[language]
     builder = builder_class(name=name, store_in=store_in)
-    return '/path/to/script'
+    return builder.generate_script()
 
 
 def main(args):
