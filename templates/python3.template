@@ -52,7 +52,8 @@ def setup_logger(args):
     # create file handler which logs even debug messages
     # todo: place them in a log directory, or add the time to the log's
     # filename, or append to pre-existing log
-    fh = logging.FileHandler(__appname__ + ".log")
+    log_file = os.path.join('/tmp', __appname__ + '.log')
+    fh = logging.FileHandler(log_file)
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
@@ -83,8 +84,8 @@ def get_arguments():
     parser.add_argument('-v', '--verbose', action='store_true',
                         default=False, help='verbose output')
 
-    return parser.parse_args()
-
+    args = parser.parse_args()
+    return args
 
 if __name__ == '__main__':
     try:
@@ -92,6 +93,12 @@ if __name__ == '__main__':
 
         args = get_arguments()
         setup_logger(args)
+        logger.debug('Command-line arguments:')
+        for arg in vars(args):
+            value = getattr(args, arg)
+            logger.debug('\t{{argument_key}}:\t{{value}}'.format(argument_key=arg,
+                                                           value=value))
+
         logger.debug(start_time)
 
         main(args)
