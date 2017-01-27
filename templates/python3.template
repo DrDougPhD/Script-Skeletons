@@ -3,7 +3,7 @@
 """
 SYNOPSIS
 
-	python SCRIPT.py [-h,--help] [-v,--verbose]
+	python {0.name}.py [-h,--help] [-v,--verbose]
 
 
 DESCRIPTION
