@@ -64,12 +64,11 @@ def setup_logger(args):
         ch.setLevel(logging.INFO)
 
     # create formatter and add it to the handlers
-    fh.setFormatter(logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    ))
-    ch.setFormatter(logging.Formatter(
-        '%(levelname)s - %(message)s'
-    ))
+    line_numbers_and_function_name = logging.Formatter(
+        "%(levelname)s [%(filename)s:%(lineno)s - %(funcName)20s() ]"
+        "%(message)s")
+    fh.setFormatter(line_numbers_and_function_name)
+    ch.setFormatter(line_numbers_and_function_name)
     # add the handlers to the logger
     logger.addHandler(fh)
     logger.addHandler(ch)
