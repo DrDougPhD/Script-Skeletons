@@ -92,11 +92,17 @@ if __name__ == '__main__':
 
         args = get_arguments()
         setup_logger(args)
+
+        # figure out which argument key is the longest so that all the
+        # parameters can be printed out nicely
         logger.debug('Command-line arguments:')
+        length_of_longest_key = len(max(vars(args).keys(),
+                                        key=lambda k: len(k)))
         for arg in vars(args):
             value = getattr(args, arg)
-            logger.debug('\t{{argument_key}}:\t{{value}}'.format(argument_key=arg,
-                                                           value=value))
+            logger.debug('\t{argument_key}:\t{value}'.format(
+                argument_key=arg.rjust(length_of_longest_key, ' '),
+                value=value))
 
         logger.debug(start_time)
 
