@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 SYNOPSIS
@@ -50,11 +50,10 @@ def main(args):
 def setup_logger(args):
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    # todo: place them in a log directory, or add the time to the log's
-    # filename, or append to pre-existing log
     log_file = os.path.join('/tmp', __appname__ + '.log')
     fh = logging.FileHandler(log_file)
     fh.setLevel(logging.DEBUG)
+    
     # create console handler with a higher log level
     ch = logging.StreamHandler()
 
@@ -65,7 +64,7 @@ def setup_logger(args):
 
     # create formatter and add it to the handlers
     line_numbers_and_function_name = logging.Formatter(
-        "%(levelname)s [%(filename)s:%(lineno)s - %(funcName)20s() ]"
+        "%(levelname)s [%(pathname)s:%(lineno)s - %(funcName)20s() ] "
         "%(message)s")
     fh.setFormatter(line_numbers_and_function_name)
     ch.setFormatter(line_numbers_and_function_name)
@@ -100,7 +99,7 @@ if __name__ == '__main__':
                                         key=lambda k: len(k)))
         for arg in vars(args):
             value = getattr(args, arg)
-            logger.debug('\t{argument_key}:\t{value}'.format(
+            logger.debug('\t{{argument_key}}:\t{{value}}'.format(
                 argument_key=arg.rjust(length_of_longest_key, ' '),
                 value=value))
 
