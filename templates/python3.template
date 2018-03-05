@@ -64,7 +64,7 @@ def setup_logger(args):
 
     # create formatter and add it to the handlers
     line_numbers_and_function_name = logging.Formatter(
-        "%(levelname)s [ %(pathname)s::%(funcName)s():%(lineno)s ]"
+        "%(levelname)s [ %(pathname)s::%(funcName)s():%(lineno)s ] "
         "%(message)s")
     fh.setFormatter(line_numbers_and_function_name)
     ch.setFormatter(line_numbers_and_function_name)

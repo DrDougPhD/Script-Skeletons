@@ -106,15 +106,8 @@ class BaseSkeletonBuilder(object):
 
 
 # TODO: implement deprecation warning using the warnings class
-class PythonSkeletonBuilder(BaseSkeletonBuilder):
+class Python3SkeletonBuilder(BaseSkeletonBuilder):
     extension = '.py'
-
-
-class Python2SkeletonBuilder(PythonSkeletonBuilder):
-    template_filename = 'python2.template'
-
-
-class Python3SkeletonBuilder(PythonSkeletonBuilder):
     template_filename = 'python3.template'
 
 
@@ -123,19 +116,22 @@ class BashSkeletonBuilder(BaseSkeletonBuilder):
     extension = '.sh'
     template_filename = 'bash.template'
 
+# TODO: implement C++ skeleton template
+class CPlusPlusSkeletonBuilder(BaseSkeletonBuilder):
+    extension = '.cpp'
+    template_filename = 'cpp.template'
+
 
 builders = {
-    'python3': Python3SkeletonBuilder,
-    'python2': Python2SkeletonBuilder,
-    'bash': BashSkeletonBuilder,
-
-    # defaults
-    'python': Python3SkeletonBuilder,
+    '.py': Python3SkeletonBuilder,
+    '.sh': BashSkeletonBuilder,
+    '.cpp': CPlusPlusSkeletonBuilder,
 }
 
 
-def script_factory(name, language, store_in=None):
-    builder_class = builders[language]
+def script_factory(name, store_in=None):
+    extension = os.path.splitext(name)[-1]
+    builder_class = builders[extension]
     builder = builder_class(name=name, store_in=store_in)
     return builder.generate_script()
 
@@ -143,9 +139,8 @@ def script_factory(name, language, store_in=None):
 def main(args):
     directory = os.path.abspath(os.path.dirname(args.script_path))
     filename = os.path.basename(args.script_path)
-    script_path = script_factory(name=filename, store_in=directory,
-                                 language=args.language)
-    logger.info('{0} script output to "{1}"'.format(args.language, script_path))
+    script_path = script_factory(name=filename, store_in=directory)
+    logger.info('Script saved to "{}"'.format(script_path))
 
 
 def setup_logger(args):
@@ -153,7 +148,7 @@ def setup_logger(args):
     # create file handler which logs even debug messages
     # todo: place them in a log directory, or add the time to the log's
     # filename, or append to pre-existing log
-    fh = logging.FileHandler(__appname__ + ".log")
+    fh = logging.FileHandler('/tmp/' + __appname__ + ".log")
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
@@ -181,14 +176,17 @@ def get_arguments():
     )
     # during development, I set default to False so I don't have to keep
     # calling this with -v
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        default=False, help='verbose output')
+    parser.add_argument(
+        '-v', '--verbose', action='store_true',
+        default=False,
+        help='verbose output'
+    )
 
-    parser.add_argument('script_path', metavar='SCRIPT_PATH',
-                        help="specify the script's path")
-
-    parser.add_argument('language', metavar='LANGUAGE',
-                        help="specify the script's language: python, python3, bash")
+    parser.add_argument(
+        'script_path', metavar='SCRIPT_PATH',
+        required=True,
+        help="the path to where the new script will be saved"
+    )
 
     return parser.parse_args()
 
