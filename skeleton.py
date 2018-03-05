@@ -184,7 +184,6 @@ def get_arguments():
 
     parser.add_argument(
         'script_path', metavar='SCRIPT_PATH',
-        required=True,
         help="the path to where the new script will be saved"
     )
 
