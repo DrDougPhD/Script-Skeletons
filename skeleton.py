@@ -33,6 +33,8 @@ LICENSE
 """
 import os
 
+import shutil
+
 __appname__ = "skeleton"
 __author__ = "Doug McGeehan <djmvfb@mst.edu>"
 __version__ = "0.0pre0"
@@ -77,6 +79,7 @@ class BaseSkeletonBuilder(object):
         logger.debug('Script name: {}'.format(name))
         self.store_in = store_in
         logger.debug('Directory: {}'.format(store_in))
+        os.makedirs(store_in, exist_ok=True)
 
     def generate_script(self):
         filename = self.get_script_filename()
@@ -84,6 +87,28 @@ class BaseSkeletonBuilder(object):
         with open(complete_path, 'w') as script:
             script_content = self.populate_template()
             script.write(script_content)
+
+        for directory in self.directories_to_create:
+            path = os.path.join(self.store_in, self.name, directory)
+            os.makedirs(path, exist_ok=True)
+            logger.info('Created directory {}/'.format(path))
+
+        for empty_file_relpath in self.empty_files_to_create:
+            # create an empty file
+            path = os.path.join(self.store_in, self.name, empty_file_relpath)
+            open(path, 'w')
+
+        for filename, path_to_copy_into in self.files_to_copy.items():
+            directory = os.path.join(self.store_in,
+                                     path_to_copy_into.format(self))
+            os.makedirs(directory, exist_ok=True)
+            source = os.path.join(self.templates_stored_in,
+                                  self.skeleton_directory,
+                                  filename)
+            destination = os.path.join(directory, filename)
+            shutil.copy(source, destination)
+            logger.info('Copied {} to {}'.format(source, destination))
+
         return complete_path
 
     def get_script_filename(self):
@@ -109,6 +134,20 @@ class BaseSkeletonBuilder(object):
 class Python3SkeletonBuilder(BaseSkeletonBuilder):
     extension = '.py'
     template_filename = 'python3.template'
+    skeleton_directory = 'python3'
+    directories_to_create = [
+        'commands'
+    ]
+    empty_files_to_create = [
+        '__init__.py',
+        os.path.join('commands', '__init__.py')
+    ]
+    files_to_copy = {
+        'config.py': '.',
+        'cli.py': '.',
+        'requirements.txt': '.',
+        'subcommand.py': os.path.join('{0.name}', 'commands')
+    }
 
 
 # TODO: implement bash skeleton template
