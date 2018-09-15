@@ -27,6 +27,11 @@ LICENSE
 	Copyright {0.year} {0.author} - {0.license}
 
 """
+import logging
+import progressbar
+
+import cli
+
 
 __appname__ = "{0.name}"
 __author__ = "{0.author}"
@@ -35,41 +40,17 @@ __license__ = "{0.license}"
 __indevelopment__ = True        # change this to false when releases are ready
 
 
-import argparse
-import logging
-
-import cli
-
+progressbar.streams.wrap_stderr()
 logger = logging.getLogger('{0.name}')
 
-
-# Uncomment the import below and add the module corresponding to a subcommand
-from {0.name}.commands import subcommand
-enabled_subcommands = [
-    subcommand
-]
 
 def main(args):
     '''ADD DESCRIPTION HERE'''
     args.func(args=args)
 
 
-def cli_arguments():
-    parser = argparse.ArgumentParser(
-        description=main.__doc__,
-        formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        default=__indevelopment__, help='verbose output')
-
-    cli.add_subcommands(subcmd_modules=enabled_subcommands,
-                        parser=parser)
-
-    args = parser.parse_args()
-    return args
-
-
 if __name__ == '__main__':
-    args = cli_arguments()
-    with cli.prepare(app='{0.name}', args=args):
-        main(args=args)
+    with cli.prepare(app='{0.name}',
+                     description=main.__doc__,
+                     verbosity=__indevelopment__) as commandline:
+        main(args=commandline.arguments)

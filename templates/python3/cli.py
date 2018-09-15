@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import argparse
 import os
-from datetime import datetime
-import logging
-from io import TextIOWrapper
-import colorlog
 import sys
+import logging
+import colorlog
+import argparse
+import importlib
+from pathlib import Path
+from io import TextIOWrapper
+from datetime import datetime
 
 
-def prepare(app, args):
-    return CommandLineInterface(app=app, args=args)
+def prepare(app, description, verbosity):
+    return CommandLineInterface(app=app,
+                                description=description,
+                                verbosity=verbosity)
 
 
 def add_subcommands(subcmd_modules, parser):
@@ -25,12 +29,50 @@ def add_subcommands(subcmd_modules, parser):
 
 
 class CommandLineInterface(object):
-    def __init__(self, app, args):
+    def __init__(self, app, description, verbosity):
         self.app = app
+        self.description = description
+
         self.start_time = datetime.now()
 
-        self.cli_arguments = args
+        self.arguments = self.read_cli_arguments(description, verbosity)
         self.log = logging.getLogger(app)
+
+    def read_cli_arguments(self, description, verbosity):
+        parser = argparse.ArgumentParser(
+            description=description,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        )
+        parser.add_argument('-v', '--verbose',
+                            action='store_true',
+                            default=verbosity,
+                            help='verbose output')
+
+        subparsers = parser.add_subparsers(dest='subcommand')
+        for module in self.load_subcommands():
+            subcommand = subparsers.add_parser(
+                name=module.__name__.split('.')[-1],
+                help=module.__doc__ or '',
+                formatter_class=argparse.ArgumentDefaultsHelpFormatter
+            )
+            module.cli(subcommand)
+
+        # parser.set_default_subparser(name=config.defaults.subcommand)
+
+        args = parser.parse_args()
+        return args
+
+    def load_subcommands(self):
+        subcommand_directory = Path('.') / self.app / 'commands'
+        for subcommand_module_file in subcommand_directory.glob('*.py'):
+            subcommand_module_filename = subcommand_module_file.name
+            if subcommand_module_filename.startswith('__'):
+                continue
+
+            subcommand_module_name = subcommand_module_filename.replace('.py', '')
+
+            subcommand_package = f'{self.app}.commands.{subcommand_module_name}'
+            yield importlib.import_module(name=subcommand_package)
 
     def __enter__(self):
         self.setup_logger()
@@ -38,10 +80,10 @@ class CommandLineInterface(object):
         # figure out which argument key is the longest so that all the
         # parameters can be printed out nicely
         self.log.debug('Command-line arguments:')
-        length_of_longest_key = len(max(vars(self.cli_arguments).keys(),
+        length_of_longest_key = len(max(vars(self.arguments).keys(),
                                         key=lambda k: len(k)))
-        for arg in vars(self.cli_arguments):
-            value = getattr(self.cli_arguments, arg)
+        for arg in vars(self.arguments):
+            value = getattr(self.arguments, arg)
             if callable(value):
                 self.log.debug('\t{argument_key}:\t{value}'.format(
                     argument_key=arg.rjust(length_of_longest_key, ' '),
@@ -99,7 +141,7 @@ class CommandLineInterface(object):
         # create console handler with a higher log level
         command_line_logging = logging.StreamHandler()
 
-        if self.cli_arguments.verbose:
+        if self.arguments.verbose:
             command_line_logging.setLevel(logging.DEBUG)
 
             # add relpathname log format attribute so as to only show the file
