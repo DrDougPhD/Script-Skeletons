@@ -1,0 +1,33 @@
+# -*- coding: utf-8 -*-
+from setuptools import setup
+
+dependencies = list(
+    filter(lambda l: not l.startswith('#'),
+           map(lambda l: l.strip(),
+               open('requirements.txt').readlines()))
+)
+
+# raise ValueError('Please set project name in setup.py')
+
+setup(
+    name = '{0.name}',
+    version = '0.0.a1',
+    author = "{0.author}",
+    author_email = "djmvfb@mst.edu",
+    description = ("PROJECT_DESCRIPTION_HERE"),
+    license = "{0.license}",
+    keywords = "KEYWORDS_HERE",
+    url = "PROJECT_URL_HERE",
+    packages=['{0.name}',
+              '{0.name}.cli',
+              '{0.name}.cli.scripts'], # add more modules here...
+    classifiers=[
+        "Topic :: Utilities",
+    ],
+    entry_points={{
+        'console_scripts': [
+            '{0.name}demo = {0.name}.cli:main',
+         ],
+    }},
+    install_requires=dependencies,
+)

@@ -35,7 +35,6 @@ from {0.name} import cli
 
 __appname__ = "{0.name}"
 __author__ = "{0.author}"
-__version__ = "0.0pre0"
 __license__ = "{0.license}"
 __indevelopment__ = True        # change this to false when releases are ready
 

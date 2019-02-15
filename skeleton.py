@@ -111,6 +111,13 @@ class BaseSkeletonBuilder(object):
 
         return complete_path
 
+    def generate_installation_file(self):
+        raise (
+            '{}.generate_installation_file() is not implemented!'.format(
+                self.__class__.__name__,
+            )
+        )
+
     def get_script_filename(self):
         filename = 'run_{name}{ext}'.format(name=self.name,
                                         ext=self.extension)
@@ -123,9 +130,13 @@ class BaseSkeletonBuilder(object):
         content = template_content.format(self)
         return content
 
+    def get_templates_directory(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(current_dir, self.templates_stored_in)
+
     def get_template_path(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        template_path = os.path.join(current_dir, self.templates_stored_in,
+        template_path = os.path.join(self.get_templates_directory(),
                                      self.template_filename)
         return template_path
 
@@ -148,6 +159,20 @@ class Python3SkeletonBuilder(BaseSkeletonBuilder):
         'requirements.txt': '.',
         'subcommand.py': os.path.join('{0.name}', 'cli', 'scripts')
     }
+
+    def generate_installation_file(self):
+        filename = 'setup.py'
+        complete_path = os.path.join(self.store_in, filename)
+        with open(complete_path, 'w') as script:
+            template_path = os.path.join(self.get_templates_directory(),
+                                         self.skeleton_directory,
+                                         '{}.template'.format(filename))
+            with open(template_path) as f:
+                template_content = f.read()
+            setup_script_content = template_content.format(self)
+            script.write(setup_script_content)
+
+        return complete_path
 
 
 # TODO: implement bash skeleton template
@@ -172,6 +197,7 @@ def script_factory(name, store_in=None):
     extension = os.path.splitext(name)[-1]
     builder_class = builders[extension]
     builder = builder_class(name=name, store_in=store_in)
+    builder.generate_installation_file()
     return builder.generate_script()
 
 
