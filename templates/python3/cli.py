@@ -133,7 +133,6 @@ class CommandLineInterface(object):
         self.log.setLevel(logging.DEBUG)
 
         # create file handler which logs even debug messages
-        log_file = os.path.join('/tmp', self.app + '.log')
         in_dev_debug_file_handler = logging.FileHandler(
             os.path.join('/tmp', '{}.development.log'.format(self.app))
         )
