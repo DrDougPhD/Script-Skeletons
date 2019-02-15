@@ -69,9 +69,12 @@ class CommandLineInterface(object):
         subcommand_directory = Path(__file__).parent / 'scripts'
         for subcommand_module_file in subcommand_directory.glob('*.py'):
             subcommand_module_filename = subcommand_module_file.name
+
+            # Skip over __init__.py within module directory
             if subcommand_module_filename.startswith('__'):
                 continue
 
+            # Strip Python extension from module name to get subcommand name
             subcommand_module_name = subcommand_module_filename.replace('.py', '')
 
             subcommand_package = f'{self.app}.cli.scripts.{subcommand_module_name}'

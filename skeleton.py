@@ -112,7 +112,7 @@ class BaseSkeletonBuilder(object):
         return complete_path
 
     def get_script_filename(self):
-        filename = '{name}{ext}'.format(name=self.name,
+        filename = 'run_{name}{ext}'.format(name=self.name,
                                         ext=self.extension)
         logger.debug('Script filename w/ extension: {}'.format(filename))
         return filename
@@ -136,11 +136,11 @@ class Python3SkeletonBuilder(BaseSkeletonBuilder):
     template_filename = 'python3.template'
     skeleton_directory = 'python3'
     directories_to_create = [
-        'commands'
+        os.path.join('cli', 'scripts'),
     ]
     empty_files_to_create = [
         '__init__.py',
-        os.path.join('commands', '__init__.py')
+        os.path.join('cli', 'scripts', '__init__.py')
     ]
     files_to_copy = {
         'config.py': '{0.name}',
