@@ -143,10 +143,10 @@ class Python3SkeletonBuilder(BaseSkeletonBuilder):
         os.path.join('commands', '__init__.py')
     ]
     files_to_copy = {
-        'config.py': '.',
-        'cli.py': '.',
+        'config.py': '{0.name}',
+        'cli.py': '{0.name}',
         'requirements.txt': '.',
-        'subcommand.py': os.path.join('{0.name}', 'commands')
+        'subcommand.py': os.path.join('{0.name}', 'cli', 'scripts')
     }
 
 

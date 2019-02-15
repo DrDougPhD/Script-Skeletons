@@ -10,8 +10,11 @@ from pathlib import Path
 from io import TextIOWrapper
 from datetime import datetime
 
+from . import config
+
 
 def prepare(app, description, verbosity):
+    argparse.ArgumentParser.set_default_subparser = set_default_subparser
     return CommandLineInterface(app=app,
                                 description=description,
                                 verbosity=verbosity)
@@ -57,13 +60,13 @@ class CommandLineInterface(object):
             )
             module.cli(subcommand)
 
-        # parser.set_default_subparser(name=config.defaults.subcommand)
+        parser.set_default_subparser(name=config.defaults.subcommand)
 
         args = parser.parse_args()
         return args
 
     def load_subcommands(self):
-        subcommand_directory = Path('.') / self.app / 'commands'
+        subcommand_directory = Path(__file__).parent / 'scripts'
         for subcommand_module_file in subcommand_directory.glob('*.py'):
             subcommand_module_filename = subcommand_module_file.name
             if subcommand_module_filename.startswith('__'):
@@ -71,7 +74,7 @@ class CommandLineInterface(object):
 
             subcommand_module_name = subcommand_module_filename.replace('.py', '')
 
-            subcommand_package = f'{self.app}.commands.{subcommand_module_name}'
+            subcommand_package = f'{self.app}.cli.scripts.{subcommand_module_name}'
             yield importlib.import_module(name=subcommand_package)
 
     def __enter__(self):
@@ -179,3 +182,32 @@ class CommandLineInterface(object):
         self.log.addHandler(in_dev_debug_file_handler)
         self.log.addHandler(command_line_logging)
         self.log.addHandler(readable_debug_file_handler)
+
+
+def set_default_subparser(self, name, args=None, positional_args=0):
+    """default subparser selection. Call after setup, just before parse_args()
+    name: is the name of the subparser to call by default
+    args: if set is the argument list handed to parse_args()
+
+    , tested with 2.7, 3.2, 3.3, 3.4
+    it works with 2.6 assuming argparse is installed
+    """
+    subparser_found = False
+    for arg in sys.argv[1:]:
+        if arg in ['-h', '--help']:  # global help if no subparser
+            break
+    else:
+        for x in self._subparsers._actions:
+            if not isinstance(x, argparse._SubParsersAction):
+                continue
+            for sp_name in x._name_parser_map.keys():
+                if sp_name in sys.argv[1:]:
+                    subparser_found = True
+        if not subparser_found:
+            # insert default in last position before global positional
+            # arguments, this implies no global options are specified after
+            # first positional argument
+            if args is None:
+                sys.argv.insert(len(sys.argv) - positional_args, name)
+            else:
+                args.insert(len(args) - positional_args, name)

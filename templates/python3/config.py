@@ -5,4 +5,4 @@
 class defaults(object):
     '''Default configuration for application
     '''
-    input = '/tmp/python_script_skeleton.log'
+    subcommand = 'subcommand'

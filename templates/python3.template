@@ -30,7 +30,7 @@ LICENSE
 import logging
 import progressbar
 
-import cli
+from {0.name} import cli
 
 
 __appname__ = "{0.name}"
@@ -41,7 +41,7 @@ __indevelopment__ = True        # change this to false when releases are ready
 
 
 progressbar.streams.wrap_stderr()
-logger = logging.getLogger('{0.name}')
+logger = logging.getLogger(__appname__)
 
 
 def main(args):
@@ -50,7 +50,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    with cli.prepare(app='{0.name}',
+    with cli.prepare(app=__appname__,
                      description=main.__doc__,
                      verbosity=__indevelopment__) as commandline:
         main(args=commandline.arguments)
